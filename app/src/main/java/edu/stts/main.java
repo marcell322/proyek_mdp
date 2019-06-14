@@ -2,6 +2,7 @@ package edu.stts;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,18 +12,26 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.Response.ErrorListener;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,7 +47,7 @@ import java.util.Map;
  * Use the {@link main#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class main extends Fragment {
+public class main extends Fragment implements View.OnClickListener {
     private SharedPreferences pref;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -48,9 +57,12 @@ public class main extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    TextView tvnama,tvbday,tvdesk;
     String url = "http://proyektinder.000webhostapp.com/Proyek_Tinder/public/home";
+    String urlgambar ="http://proyektinder.000webhostapp.com/Proyek_Tinder/public/uploads/";
     String user="";
     RequestQueue rq;
+    String[] arrnama;
     private OnFragmentInteractionListener mListener;
 
     public main() {
@@ -83,12 +95,23 @@ public class main extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-
+    Button like,nope;
+    int ctr=0;
+    ImageView img;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        View v=inflater.inflate(R.layout.fragment_main, container, false);
+        tvbday = v.findViewById(R.id.txtBdayHome);
+        img = v.findViewById(R.id.imageDownload);
+        tvdesk=v.findViewById(R.id.txtDes);
+        tvnama =v.findViewById(R.id.txtuserhome);
+        like = v.findViewById(R.id.btnlike);
+        nope = v.findViewById(R.id.btnnope);
+        like.setOnClickListener(this);
+        nope.setOnClickListener(this);
+        return v;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -115,50 +138,100 @@ public class main extends Fragment {
         pref = requireContext().getSharedPreferences("loginpref", Context.MODE_PRIVATE);
         user = pref.getString("username","");
         rq = Volley.newRequestQueue(requireContext());
-        JSONObject data = new JSONObject();
-        try {
-            data.put("username",user);
-        }catch (JSONException e){
-            e.printStackTrace();
-        }
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, data,
-                new Response.Listener<JSONObject>() {
+        ctr=0;
+        request();
+    }
+    int max;
+    public void request(){
+        JSONArray data = new JSONArray();
+        JsonArrayRequest jor = new JsonArrayRequest(Request.Method.GET, url, data,
+                new Response.Listener<JSONArray>() {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        String user="";
-                        String des ="";
-                        String bday="";
+                    public void onResponse(JSONArray response) {
+                        max = response.length();
+                        String asd = response.toString();
+                        String Nama="";
                         try {
-                            user=response.getString("username");
-                            des = response.getString("deskripsi");
-                            bday = response.getString("tanggal_lahir");
-                        }catch (JSONException e){
+                            Nama = response.getString(ctr);
+                        } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Toast.makeText(requireContext(),user.toString(),Toast.LENGTH_SHORT).show();
+                        arrnama = Nama.split(",");
+                        if(arrnama[1].substring(11).equals("\""+user+"\"")) {
+                            try {
+                                ctr++;
+                                if(ctr>=max){
+                                    ctr=0;
+                                }
+                                Nama = response.getString(ctr);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            arrnama = Nama.split(",");
+                        }
+                        imagereq(arrnama[1].substring(11).replace("\"",""));
+                        String bday = arrnama[4].substring(17).replace("\"","");
+                        String nama = arrnama[3].substring(13).replace("\"","");
+                        String deskripsi =arrnama[5].substring(13).replace("\"","");
+                        deskripsi = deskripsi.replace("}","");
+                        tvbday.setText("Ulang tahun: "+bday);
+                        tvnama.setText("Nama: "+nama);
+                        tvdesk.setText("Deskripsi: "+deskripsi);
                     }
                 },
-                new Response.ErrorListener() {
+                new ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(requireContext(),error.toString(),Toast.LENGTH_SHORT).show();
                     }
-                }
-        ){
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> header = new HashMap<String, String>();
-                header.put("Content-Type", "application/json;charset=utf-8");
-                return header;
-            }
-        };
+                });
         rq.add(jor);
+    }
+
+    public void imagereq(String now){
+        ImageRequest ir = new ImageRequest(urlgambar + now+".jpg",
+                new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        img.setImageBitmap(response);
+                    }
+                },0,0,null,Bitmap.Config.RGB_565,
+                new Response.ErrorListener(){
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        img.setImageResource(R.drawable.ic_launcher_background);
+                        error.printStackTrace();
+                    }
+                });
+        rq.add(ir);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+    String urllike;
+    String idku,idhome;
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.btnlike:
+                ctr++;
+                if(ctr>=max){
+                    ctr=0;
+                }
+                request();
+                break;
+            case R.id.btnnope:
+                ctr++;
+                if(ctr>=max){
+                    ctr=0;
+                }
+                request();
+                break;
+        }
     }
 
     /**

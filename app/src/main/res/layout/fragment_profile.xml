@@ -32,6 +32,11 @@
             android:inputType="date"
             android:hint="Birthday" />
 
+        <EditText
+            android:id="@+id/etDesk"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Deskripsi" />
 
         <EditText
             android:id="@+id/etPass"
