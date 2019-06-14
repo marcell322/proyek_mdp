@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".main">
+
+    <ImageView
+        android:id="@+id/imageDownload"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:foregroundGravity="center_horizontal"/>
+    
+    <TextView
+        android:id="@+id/txtuserhome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <Button
+        android:id="@+id/btnnope"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nope"
+        android:layout_below="@id/txtDes"/>
+
+    <Button
+        android:id="@+id/btnlike"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Like"
+        android:layout_below="@id/txtDes"
+        android:layout_toRightOf="@id/btnnope"/>
+
+    <TextView
+        android:id="@+id/txtBdayHome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:layout_below="@id/txtuserhome"/>
+
+    <TextView
+        android:id="@+id/txtDes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:layout_below="@id/txtBdayHome"/>
+</RelativeLayout>
